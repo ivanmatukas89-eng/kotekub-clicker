@@ -2,95 +2,380 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Клик-ферма КотэКуба</title>
-    <!-- Подключаем скрипт Telegram Web App -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS для быстрого и красивого дизайна -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kotekub Clicker</title>
     <style>
-        @keyframes bounce-short {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.92); }
+        :root {
+            --primary: #ff007f;
+            --secondary: #00f0ff;
+            --bg-dark: #0b0c10;
+            --card-bg: rgba(22, 27, 34, 0.75);
         }
-        .click-animation {
-            animation: bounce-short 0.1s ease-in-out;
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 127, 0.25) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.2) 0%, transparent 40%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        /* Верхняя панель со счетом */
+        .header {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px 20px 10px;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #ff007f, #00f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .score-container {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .score-icon {
+            width: 35px;
+            height: 35px;
+        }
+
+        .level-bar-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .level-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff007f, #00f0ff);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Центральная игровая зона */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* Кот-кубик */
+        .cat-cube {
+            width: 220px;
+            height: 220px;
+            cursor: pointer;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            transition: transform 0.08s ease;
+            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.6));
+        }
+
+        .cat-cube:active {
+            transform: scale(0.92) !important;
+            animation-play-state: paused;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+        }
+
+        /* Вылетающие циферки */
+        .click-pop {
+            position: absolute;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #00f0ff;
+            text-shadow: 0 0 10px #00f0ff, 0 0 20px #ff007f;
+            pointer-events: none;
+            animation: popUp 0.8s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes popUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(1.4);
+            }
+        }
+
+        /* Нижнее меню прокачки */
+        .upgrades-panel {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px 25px 0 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .upgrade-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upgrade-card:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upgrade-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 1rem;
+        }
+
+        .upgrade-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #a0a5b5;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #ff007f, #7928ca);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(255, 0, 127, 0.3);
         }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between items-center p-4 select-none">
+<body>
 
-    <!-- Шапка профиля -->
-    <div class="w-full max-w-md flex justify-between items-center bg-slate-800/60 p-4 rounded-2xl border border-slate-700 backdrop-blur-md">
-        <div>
-            <h1 id="username" class="font-bold text-lg text-amber-400">КотэКуб Фармер</h1>
-            <p class="text-xs text-slate-400">Твой уровень: <span id="level" class="text-white font-semibold">Новичок</span></p>
+    <!-- Шапка со счетом -->
+    <div class="header">
+        <div class="title">Kotekub Clicker</div>
+        <div class="score-container">
+            <span id="score">0</span>
+            <span style="font-size: 2rem;">🐾</span>
         </div>
-        <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400 font-bold text-sm">
-            🐟 <span id="fishCount">0</span>
+        <div class="level-bar-container">
+            <div class="level-bar-fill" id="levelProgress"></div>
         </div>
     </div>
 
-    <!-- Основная игровая зона (Кликалка) -->
-    <div class="flex flex-col items-center justify-center my-auto">
-        <div class="text-center mb-6">
-            кликни на кота!
-        </div>
-        
-        <!-- Сам КотэКуб (кнопка) -->
-        <button id="clickBtn" class="relative group focus:outline-none transition-transform">
-            <div class="absolute -inset-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl blur-xl opacity-40 group-hover:opacity-75 transition duration-300"></div>
-            <div id="cubeContainer" class="relative w-48 h-48 bg-gradient-to-br from-amber-400 to-orange-600 rounded-3xl shadow-2xl flex flex-col items-center justify-center border-4 border-amber-300/50 cursor-pointer">
-                <!-- Мордочка КотэКуба (имитация пиксель-арта/куба) -->
-                <div class="text-6xl mb-2">🐱📦</div>
-                <span class="text-slate-900 font-black tracking-wider text-sm bg-amber-200/80 px-3 py-1 rounded-lg">КОТЭКУБ</span>
+    <!-- Игровая зона с котиком -->
+    <div class="game-area" id="gameArea">
+        <svg class="cat-cube" id="catBtn" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- Тени и Градиенты -->
+                <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+                    <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.4"/>
+                </filter>
+                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="100%" stop-color="#e2e8f0"/>
+                </linearGradient>
+            </defs>
+
+            <!-- Основной Куб Кота (Белый плюш) -->
+            <rect x="25" y="45" width="150" height="130" rx="35" fill="url(#bodyGrad)" filter="url(#shadow)"/>
+            <!-- Животик -->
+            <rect x="45" y="115" width="110" height="50" rx="20" fill="#f8fafc"/>
+
+            <!-- Левое ушко (Черное) -->
+            <path d="M 40 50 Q 25 10 55 25 Z" fill="#1e1e24"/>
+            <path d="M 43 45 Q 32 18 52 28 Z" fill="#ff85a1"/>
+
+            <!-- Правое ушко (Рыжее/Оранжевое) -->
+            <path d="M 160 50 Q 175 10 145 25 Z" fill="#ff9f1c"/>
+            <path d="M 157 45 Q 168 18 148 28 Z" fill="#ff85a1"/>
+
+            <!-- Пятнышко около глаза (Черное) -->
+            <ellipse cx="65" cy="85" rx="18" ry="18" fill="#1e1e24" opacity="0.15"/>
+
+            <!-- Глаза (Большие круглые аниме-глаза) -->
+            <circle cx="68" cy="85" r="14" fill="#0f172a"/>
+            <circle cx="132" cy="85" r="14" fill="#0f172a"/>
+            <!-- Блики в глазах -->
+            <circle cx="64" cy="81" r="5" fill="#ffffff"/>
+            <circle cx="128" cy="81" r="5" fill="#ffffff"/>
+            <circle cx="72" cy="89" r="2" fill="#ffffff"/>
+            <circle cx="136" cy="89" r="2" fill="#ffffff"/>
+
+            <!-- Носик (Оранжевый) -->
+            <ellipse cx="100" cy="94" rx="4" ry="3" fill="#ff9f1c"/>
+
+            <!-- Щечки -->
+            <ellipse cx="50" cy="98" rx="8" ry="5" fill="#ff85a1" opacity="0.6"/>
+            <ellipse cx="150" cy="98" rx="8" ry="5" fill="#ff85a1" opacity="0.6"/>
+
+            <!-- Усики -->
+            <path d="M 35 90 L 15 87 M 35 96 L 12 96" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 165 90 L 185 87 M 165 96 L 188 96" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+
+            <!-- Лапки -->
+            <rect x="40" y="160" width="30" height="20" rx="10" fill="#ffffff" filter="url(#shadow)"/>
+            <rect x="130" y="160" width="30" height="20" rx="10" fill="#ffffff" filter="url(#shadow)"/>
+        </svg>
+    </div>
+
+    <!-- Прокачка -->
+    <div class="upgrades-panel">
+        <div class="upgrade-card" id="upgClick">
+            <div class="upgrade-info">
+                <h4>Сила клика (+1)</h4>
+                <p>Дает больше лапок за клик</p>
             </div>
-        </button>
-        
-        <p class="text-xs text-slate-500 mt-6">+<span id="clickPower">1</span> рыба за клик</p>
-    </div>
+            <button class="upgrade-btn" id="btnClickUpg">10 🐾</button>
+        </div>
 
-    <!-- Магазин прокачки -->
-    <div class="w-full max-w-md bg-slate-800/60 p-4 rounded-2xl border border-slate-700 backdrop-blur-md mb-2">
-        <h2 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wider">🛒 Улучшения</h2>
-        <div class="space-y-2">
-            <!-- Апгрейд клика -->
-            <button onclick="buyUpgrade()" class="w-full bg-slate-700/60 hover:bg-slate-700 border border-slate-600 p-3 rounded-xl flex justify-between items-center transition">
-                <div class="text-left">
-                    <div class="font-bold text-sm text-amber-300">Пышные ушки (+1 к клику)</div>
-                    <div class="text-xs text-slate-400">Цена: <span id="upgradeCost">15</span> рыбы</div>
-                </div>
-                <div class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs">Купить</div>
-            </button>
+        <div class="upgrade-card" id="upgAuto">
+            <div class="upgrade-info">
+                <h4>Авто-поглаживание</h4>
+                <p>Фармит +1 лапку в сек.</p>
+            </div>
+            <button class="upgrade-btn" id="btnAutoUpg">50 🐾</button>
         </div>
     </div>
 
-    <!-- Логика игры (JS) -->
     <script>
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        let score = 0;
+        let clickPower = 1;
+        let autoPower = 0;
 
-        // Персонализация, если открыто из телеграма
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+        let clickCost = 10;
+        let autoCost = 50;
+
+        const scoreEl = document.getElementById('score');
+        const catBtn = document.getElementById('catBtn');
+        const gameArea = document.getElementById('gameArea');
+        const levelProgress = document.getElementById('levelProgress');
+
+        const btnClickUpg = document.getElementById('btnClickUpg');
+        const btnAutoUpg = document.getElementById('btnAutoUpg');
+
+        // Обработка клика
+        catBtn.addEventListener('pointerdown', (e) => {
+            score += clickPower;
+            updateUI();
+            createPopText(e.clientX, e.clientY, `+${clickPower}`);
+        });
+
+        // Анимация вылетающих чисел
+        function createPopText(x, y, text) {
+            const el = document.createElement('div');
+            el.className = 'click-pop';
+            el.textContent = text;
+            
+            // Немного рандома в позиции
+            const offsetX = (Math.random() - 0.5) * 30;
+            el.style.left = `${x + offsetX - 15}px`;
+            el.style.top = `${y - 40}px`;
+
+            document.body.appendChild(el);
+
+            setTimeout(() => {
+                el.remove();
+            }, 800);
         }
 
-        // Игровые переменные
-        let fish = 0;
-        let clickPower = 1;
-        let upgradeCost = 15;
+        // Покупка клика
+        document.getElementById('upgClick').addEventListener('click', () => {
+            if (score >= clickCost) {
+                score -= clickCost;
+                clickPower += 1;
+                clickCost = Math.floor(clickCost * 1.8);
+                updateUI();
+            }
+        });
 
-        const clickBtn = document.getElementById('clickBtn');
-        const cubeContainer = document.getElementById('cubeContainer');
-        const fishCountSpan = document.getElementById('fishCount');
-        const clickPowerSpan = document.getElementById('clickPower');
-        const upgradeCostSpan = document.getElementById('upgradeCost');
+        // Покупка автокликера
+        document.getElementById('upgAuto').addEventListener('click', () => {
+            if (score >= autoCost) {
+                score -= autoCost;
+                autoPower += 1;
+                autoCost = Math.floor(autoCost * 2.2);
+                updateUI();
+            }
+        });
 
-        // Обработка клика по КотэКубу
-        clickBtn.addEventListener('click', () => {
-            fish += clickPower;
-            updateUI();
+        // Авто-фарм
+        setInterval(() => {
+            if (autoPower > 0) {
+                score += autoPower;
+                updateUI();
+            }
+        }, 1000);
 
-            // Анимация нажатия
-            cubeContainer.classList.
+        // Обновление интерфейса
+        function updateUI() {
+            scoreEl.textContent = score;
+            
+            btnClickUpg.textContent = `${clickCost} 🐾`;
+            btnAutoUpg.textContent = `${autoCost} 🐾`;
+
+            // Прогресс бар
+            let progress = (score % 100);
+            levelProgress.style.width = `${progress}%`;
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
