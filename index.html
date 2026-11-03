@@ -3,15 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kotekub Clicker</title>
+    <title>Kotekub Craft - MC Edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --primary: #ff007f;
-            --secondary: #00f0ff;
-            --bg-dark: #0b0c10;
-            --card-bg: rgba(22, 27, 34, 0.75);
-        }
-
         * {
             box-sizing: border-box;
             user-select: none;
@@ -24,35 +18,180 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 0, 127, 0.25) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.2) 0%, transparent 40%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(to bottom, #4a90e2 0%, #87ceeb 50%, #76a84c 50%, #4c8225 100%);
+            font-family: 'Courier New', Courier, monospace;
             color: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Верхняя панель со счетом */
+        /* Пиксельное солнце в стиле Minecraft */
+        .pixel-sun {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            background: #ffeb3b;
+            box-shadow: 0 0 20px #ff9800, inset -6px -6px 0px #f57c00;
+            z-index: 1;
+        }
+
+        /* Насыщенный и разнообразный пейзаж (горы, песок, камни, деревья) */
+        .scenery {
+            position: absolute;
+            bottom: 45vh;
+            width: 100%;
+            height: 170px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Песчаные дюны слева */
+        .sand-dune {
+            position: absolute;
+            bottom: 0;
+            left: -10px;
+            width: 140px;
+            height: 70px;
+            background: #d4ac0d;
+            border-top: 4px solid #b7950b;
+            border-radius: 50% 50% 0 0;
+        }
+
+        /* Каменистые скалы */
+        .rock {
+            position: absolute;
+            bottom: 0;
+            left: 110px;
+            width: 90px;
+            height: 110px;
+            background: #7f8c8d;
+            border-top: 5px solid #95a5a6;
+            border-right: 5px solid #5d6d7e;
+            box-shadow: inset 10px 0 0 rgba(0,0,0,0.2);
+        }
+
+        .mountain {
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-bottom: 110px solid #5a7342;
+        }
+        .m-1 { right: -20px; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 120px solid #485c34; }
+        .m-2 { right: 140px; border-left: 90px solid transparent; border-right: 90px solid transparent; border-bottom: 95px solid #526b3a; }
+
+        .tree {
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tree-leaves {
+            width: 46px;
+            height: 46px;
+            background: #27ae60;
+            box-shadow: inset -5px -5px 0px rgba(0,0,0,0.3);
+            border: 3px solid #145a32;
+        }
+        .tree-trunk {
+            width: 14px;
+            height: 35px;
+            background: #784212;
+            border: 3px solid #4a2306;
+        }
+        .tree-1 { left: 35%; bottom: 10px; }
+        .tree-2 { right: 30%; bottom: 15px; transform: scale(0.85); }
+        .tree-3 { right: 10%; bottom: 5px; transform: scale(0.9); }
+
+        /* Разноцветная земля с цветами и тропинкой */
+        .ground-layer {
+            position: absolute;
+            bottom: 43vh;
+            width: 100%;
+            height: 25px;
+            background: repeating-linear-gradient(90deg, 
+                #27ae60, #27ae60 12px, 
+                #e67e22 12px, #e67e22 22px, /* Тропинка / песок */
+                #27ae60 22px, #27ae60 40px, 
+                #e74c3c 40px, #e74c3c 44px, /* Красные цветы */
+                #27ae60 44px, #27ae60 65px, 
+                #f1c40f 65px, #f1c40f 69px, /* Желтые цветы */
+                #27ae60 69px, #27ae60 90px
+            );
+            border-top: 4px solid #1e8449;
+            z-index: 1;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 12px 0 0 rgba(255, 255, 255, 0.9), -12px 0 0 rgba(255, 255, 255, 0.9);
+            animation: moveCloud 25s linear infinite;
+            z-index: 1;
+        }
+        .cloud-1 { width: 70px; height: 22px; top: 12%; left: -90px; animation-duration: 30s; }
+        .cloud-2 { width: 90px; height: 26px; top: 22%; left: -120px; animation-duration: 40s; animation-delay: -12s; }
+
+        @keyframes moveCloud {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(100vw + 180px)); }
+        }
+
+        #fallingFishContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .falling-fish {
+            position: absolute;
+            font-size: 2.2rem;
+            cursor: pointer;
+            pointer-events: auto;
+            animation: fallFish linear forwards;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4));
+            transition: transform 0.1s;
+            z-index: 11;
+        }
+
+        .falling-fish:active {
+            transform: scale(1.3);
+        }
+
+        @keyframes fallFish {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
         .header {
             width: 100%;
             max-width: 420px;
-            padding: 20px 20px 10px;
+            padding: 15px 20px 10px;
             text-align: center;
+            z-index: 3;
         }
 
         .title {
-            font-size: 1.2rem;
-            font-weight: 800;
+            font-size: 1.4rem;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 2px;
-            background: linear-gradient(90deg, #ff007f, #00f0ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #ffeb3b;
+            text-shadow: 3px 3px #000000;
             margin-bottom: 5px;
         }
 
@@ -60,24 +199,27 @@
             font-size: 3rem;
             font-weight: 900;
             color: #fff;
-            text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+            text-shadow: 3px 3px #000000;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
 
-        .score-icon {
-            width: 35px;
-            height: 35px;
+        .level-info {
+            font-size: 0.95rem;
+            color: #ffeb3b;
+            margin-top: 5px;
+            font-weight: bold;
+            text-shadow: 1px 1px #000;
         }
 
         .level-bar-container {
             width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            height: 8px;
-            border-radius: 10px;
-            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            height: 14px;
+            border: 2px solid #000;
+            margin-top: 8px;
             overflow: hidden;
             position: relative;
         }
@@ -85,12 +227,10 @@
         .level-bar-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #ff007f, #00f0ff);
-            border-radius: 10px;
+            background: #55ff55;
             transition: width 0.3s ease;
         }
 
-        /* Центральная игровая зона */
         .game-area {
             flex: 1;
             display: flex;
@@ -100,281 +240,627 @@
             position: relative;
             width: 100%;
             max-width: 420px;
+            z-index: 3;
         }
 
-        /* Кот-кубик */
         .cat-cube {
-            width: 220px;
-            height: 220px;
-            cursor: pointer;
+            width: 240px;
+            height: 240px;
+            cursor: grab;
             position: relative;
             animation: float 3s ease-in-out infinite;
-            transition: transform 0.08s ease;
-            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.6));
+            transition: transform 0.05s ease;
+            filter: drop-shadow(0 15px 0px rgba(0, 0, 0, 0.5));
         }
 
         .cat-cube:active {
-            transform: scale(0.92) !important;
-            animation-play-state: paused;
+            cursor: grabbing;
+        }
+
+        .cat-cube.petting {
+            transform: scale(0.92) translateY(5px);
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(1deg); }
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
-        /* Вылетающие циферки */
         .click-pop {
             position: absolute;
             font-size: 1.8rem;
             font-weight: 900;
-            color: #00f0ff;
-            text-shadow: 0 0 10px #00f0ff, 0 0 20px #ff007f;
+            color: #ff7675;
+            text-shadow: 2px 2px #000000;
             pointer-events: none;
-            animation: popUp 0.8s ease-out forwards;
+            animation: popUp 0.6s ease-out forwards;
             z-index: 100;
         }
 
         @keyframes popUp {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-80px) scale(1.4);
-            }
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.3); }
         }
 
-        /* Нижнее меню прокачки */
         .upgrades-panel {
             width: 100%;
             max-width: 420px;
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 25px 25px 0 0;
-            padding: 20px;
+            background: rgba(30, 30, 30, 0.95);
+            border-top: 4px solid #111;
+            border-radius: 14px 14px 0 0;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
+            max-height: 42vh;
+            overflow-y: auto;
+            z-index: 3;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.7);
         }
 
         .upgrade-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 12px 16px;
+            background: rgba(50, 50, 50, 0.9);
+            border: 2px solid #222;
+            box-shadow: inset 2px 2px rgba(255,255,255,0.1), inset -2px -2px rgba(0,0,0,0.5);
+            border-radius: 6px;
+            padding: 10px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
         }
 
         .upgrade-card:active {
             transform: scale(0.98);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .upgrade-card.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
 
         .upgrade-info h4 {
-            margin: 0 0 4px 0;
-            font-size: 1rem;
+            margin: 0 0 2px 0;
+            font-size: 0.9rem;
+            color: #ffeb3b;
         }
 
         .upgrade-info p {
             margin: 0;
-            font-size: 0.8rem;
-            color: #a0a5b5;
+            font-size: 0.75rem;
+            color: #ccc;
         }
 
         .upgrade-btn {
-            background: linear-gradient(135deg, #ff007f, #7928ca);
-            border: none;
+            background: #727272;
+            border: 2px solid #111;
+            box-shadow: inset 2px 2px #aaa, inset -2px -2px #444;
             color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(255, 0, 127, 0.3);
+            padding: 6px 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .upgrade-btn.bought {
+            background: #33aa33;
+            box-shadow: inset 2px 2px #55ff55, inset -2px -2px #226622;
+            cursor: default;
         }
     </style>
 </head>
 <body>
 
-    <!-- Шапка со счетом -->
+    <div class="pixel-sun"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+
+    <!-- Детализированный пейзаж: солнце, горы, скалы, песчаные дюны и деревья -->
+    <div class="scenery">
+        <div class="sand-dune"></div>
+        <div class="rock"></div>
+        <div class="mountain m-1"></div>
+        <div class="mountain m-2"></div>
+        <div class="tree tree-1">
+            <div class="tree-leaves"></div>
+            <div class="tree-trunk"></div>
+        </div>
+        <div class="tree tree-2">
+            <div class="tree-leaves"></div>
+            <div class="tree-trunk"></div>
+        </div>
+        <div class="tree tree-3">
+            <div class="tree-leaves"></div>
+            <div class="tree-trunk"></div>
+        </div>
+    </div>
+    <div class="ground-layer"></div>
+
+    <div id="fallingFishContainer"></div>
+
     <div class="header">
-        <div class="title">Kotekub Clicker</div>
+        <div class="title">Kotekub Craft</div>
         <div class="score-container">
             <span id="score">0</span>
-            <span style="font-size: 2rem;">🐾</span>
+            <span style="font-size: 1.8rem;">📦</span>
         </div>
+        <div class="level-info" id="levelInfo">Уровень 1</div>
         <div class="level-bar-container">
             <div class="level-bar-fill" id="levelProgress"></div>
         </div>
     </div>
 
-    <!-- Игровая зона с котиком -->
+    <!-- Кубический котик со скин-системой -->
     <div class="game-area" id="gameArea">
         <svg class="cat-cube" id="catBtn" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <!-- Тени и Градиенты -->
-                <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
-                    <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.4"/>
+                <filter id="pixelShadow" x="-10%" y="-10%" width="130%" height="130%">
+                    <feDropShadow dx="0" dy="8" stdDeviation="0" flood-color="#111" flood-opacity="0.5"/>
                 </filter>
-                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff"/>
-                    <stop offset="100%" stop-color="#e2e8f0"/>
-                </linearGradient>
             </defs>
 
-            <!-- Основной Куб Кота (Белый плюш) -->
-            <rect x="25" y="45" width="150" height="130" rx="35" fill="url(#bodyGrad)" filter="url(#shadow)"/>
-            <!-- Животик -->
-            <rect x="45" y="115" width="110" height="50" rx="20" fill="#f8fafc"/>
+            <!-- Основное тело кота -->
+            <rect id="catBody" x="30" y="50" width="140" height="130" fill="#dedede" stroke="#111" stroke-width="4" filter="url(#pixelShadow)" rx="4"/>
+            <rect id="catBodyBottom" x="30" y="140" width="140" height="40" fill="#b5b5b5" rx="2"/>
 
-            <!-- Левое ушко (Черное) -->
-            <path d="M 40 50 Q 25 10 55 25 Z" fill="#1e1e24"/>
-            <path d="M 43 45 Q 32 18 52 28 Z" fill="#ff85a1"/>
+            <!-- Декоративные полоски для скинов -->
+            <g id="catStripes" style="display: none;">
+                <rect x="70" y="60" width="60" height="15" fill="#d35400" opacity="0.6"/>
+                <rect x="85" y="85" width="30" height="15" fill="#d35400" opacity="0.6"/>
+            </g>
 
-            <!-- Правое ушко (Рыжее/Оранжевое) -->
-            <path d="M 160 50 Q 175 10 145 25 Z" fill="#ff9f1c"/>
-            <path d="M 157 45 Q 168 18 148 28 Z" fill="#ff85a1"/>
+            <!-- Ушки -->
+            <polygon id="earLeft" points="30,55 15,20 55,45" fill="#333" stroke="#111" stroke-width="3"/>
+            <polygon points="35,50 25,28 50,42" fill="#ff91af"/>
 
-            <!-- Пятнышко около глаза (Черное) -->
-            <ellipse cx="65" cy="85" rx="18" ry="18" fill="#1e1e24" opacity="0.15"/>
+            <polygon id="earRight" points="170,55 185,20 145,45" fill="#333" stroke="#111" stroke-width="3"/>
+            <polygon points="165,50 175,28 150,42" fill="#ff91af"/>
 
-            <!-- Глаза (Большие круглые аниме-глаза) -->
-            <circle cx="68" cy="85" r="14" fill="#0f172a"/>
-            <circle cx="132" cy="85" r="14" fill="#0f172a"/>
-            <!-- Блики в глазах -->
-            <circle cx="64" cy="81" r="5" fill="#ffffff"/>
-            <circle cx="128" cy="81" r="5" fill="#ffffff"/>
-            <circle cx="72" cy="89" r="2" fill="#ffffff"/>
-            <circle cx="136" cy="89" r="2" fill="#ffffff"/>
+            <!-- Глаза открытые -->
+            <g id="eyesOpen">
+                <rect x="60" y="80" width="22" height="22" fill="#111"/>
+                <rect x="118" y="80" width="22" height="22" fill="#111"/>
+                <rect x="66" y="84" width="8" height="8" fill="#fff"/>
+                <rect x="124" y="84" width="8" height="8" fill="#fff"/>
+            </g>
 
-            <!-- Носик (Оранжевый) -->
-            <ellipse cx="100" cy="94" rx="4" ry="3" fill="#ff9f1c"/>
+            <!-- Глаза счастливые (> <) при глажении -->
+            <g id="eyesClosed" style="display: none;">
+                <path d="M 60 92 L 71 82 L 82 92" stroke="#111" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 118 92 L 129 82 L 140 92" stroke="#111" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </g>
+
+            <!-- Носик -->
+            <rect x="94" y="106" width="12" height="8" fill="#ff91af"/>
 
             <!-- Щечки -->
-            <ellipse cx="50" cy="98" rx="8" ry="5" fill="#ff85a1" opacity="0.6"/>
-            <ellipse cx="150" cy="98" rx="8" ry="5" fill="#ff85a1" opacity="0.6"/>
-
-            <!-- Усики -->
-            <path d="M 35 90 L 15 87 M 35 96 L 12 96" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M 165 90 L 185 87 M 165 96 L 188 96" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+            <rect x="48" y="105" width="14" height="10" fill="#ff7675" opacity="0.8"/>
+            <rect x="138" y="105" width="14" height="10" fill="#ff7675" opacity="0.8"/>
 
             <!-- Лапки -->
-            <rect x="40" y="160" width="30" height="20" rx="10" fill="#ffffff" filter="url(#shadow)"/>
-            <rect x="130" y="160" width="30" height="20" rx="10" fill="#ffffff" filter="url(#shadow)"/>
+            <rect id="pawLeft" x="45" y="165" width="30" height="18" fill="#fff" stroke="#111" stroke-width="3"/>
+            <rect id="pawRight" x="125" y="165" width="30" height="18" fill="#fff" stroke="#111" stroke-width="3"/>
         </svg>
     </div>
 
-    <!-- Прокачка -->
     <div class="upgrades-panel">
         <div class="upgrade-card" id="upgClick">
             <div class="upgrade-info">
-                <h4>Сила клика (+1)</h4>
-                <p>Дает больше лапок за клик</p>
+                <h4>Алмазная кирка (+<span id="clickPowerText">1</span> блок)</h4>
+                <p>Добыча за клик</p>
             </div>
-            <button class="upgrade-btn" id="btnClickUpg">10 🐾</button>
+            <button class="upgrade-btn" id="btnClickUpg">10 📦</button>
         </div>
 
         <div class="upgrade-card" id="upgAuto">
             <div class="upgrade-info">
-                <h4>Авто-поглаживание</h4>
-                <p>Фармит +1 лапку в сек.</p>
+                <h4>Авто-ферма котят (+<span id="autoPowerText">0</span>/сек)</h4>
+                <p>Фармит блоки автоматически</p>
             </div>
-            <button class="upgrade-btn" id="btnAutoUpg">50 🐾</button>
+            <button class="upgrade-btn" id="btnAutoUpg">50 📦</button>
+        </div>
+
+        <div class="upgrade-card" id="upgSkinOrange">
+            <div class="upgrade-info">
+                <h4>🐱 Рыжий котик</h4>
+                <p>Красивый огненный скин</p>
+            </div>
+            <button class="upgrade-btn" id="btnSkinOrange">150 📦</button>
+        </div>
+
+        <div class="upgrade-card" id="upgSkinBlack">
+            <div class="upgrade-info">
+                <h4>🐈‍⬛ Черный кот-ниндзя</h4>
+                <p>Стильный темный скин</p>
+            </div>
+            <button class="upgrade-btn" id="btnSkinBlack">500 📦</button>
         </div>
     </div>
 
     <script>
-        let score = 0;
-        let clickPower = 1;
-        let autoPower = 0;
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-        let clickCost = 10;
-        let autoCost = 50;
+        let score = parseInt(localStorage.getItem('kotekub_score')) || 0;
+        let clickPower = parseInt(localStorage.getItem('kotekub_clickPower')) || 1;
+        let autoPower = parseInt(localStorage.getItem('kotekub_autoPower')) || 0;
+        let clickCost = parseInt(localStorage.getItem('kotekub_clickCost')) || 10;
+        let autoCost = parseInt(localStorage.getItem('kotekub_autoCost')) || 50;
+        
+        let unlockedOrange = localStorage.getItem('kotekub_skin_orange') === 'true';
+        let unlockedBlack = localStorage.getItem('kotekub_skin_black') === 'true';
+        let currentSkin = localStorage.getItem('kotekub_currentSkin') || 'default';
 
         const scoreEl = document.getElementById('score');
         const catBtn = document.getElementById('catBtn');
-        const gameArea = document.getElementById('gameArea');
+        const eyesOpen = document.getElementById('eyesOpen');
+        const eyesClosed = document.getElementById('eyesClosed');
         const levelProgress = document.getElementById('levelProgress');
+        const levelInfo = document.getElementById('levelInfo');
+        const fallingFishContainer = document.getElementById('fallingFishContainer');
 
         const btnClickUpg = document.getElementById('btnClickUpg');
         const btnAutoUpg = document.getElementById('btnAutoUpg');
+        const clickPowerText = document.getElementById('clickPowerText');
+        const autoPowerText = document.getElementById('autoPowerText');
 
-        // Обработка клика
+        const catBody = document.getElementById('catBody');
+        const catBodyBottom = document.getElementById('catBodyBottom');
+        const catStripes = document.getElementById('catStripes');
+        const earLeft = document.getElementById('earLeft');
+        const earRight = document.getElementById('earRight');
+        const pawLeft = document.getElementById('pawLeft');
+        const pawRight = document.getElementById('pawRight');
+
+        const btnSkinOrange = document.getElementById('btnSkinOrange');
+        const btnSkinBlack = document.getElementById('btnSkinBlack');
+
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playRealisticPurr() {
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(28, now);
+                osc.frequency.linearRampToValueAtTime(34, now + 0.15);
+                osc.frequency.linearRampToValueAtTime(26, now + 0.3);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } catch (e) {}
+        }
+
+        function playMeowSound() {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                const now = audioCtx.currentTime;
+                
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(650, now + 0.12);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.4);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } catch (e) {}
+        }
+
+        function playFishSound() {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'triangle';
+                const now = audioCtx.currentTime;
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } catch (e) {}
+        }
+
+        function scheduleRandomMeow() {
+            const randomTime = Math.random() * 10000 + 12000;
+            setTimeout(() => {
+                playMeowSound();
+                eyesOpen.style.display = 'none';
+                eyesClosed.style.display = 'block';
+                setTimeout(() => {
+                    eyesOpen.style.display = 'block';
+                    eyesClosed.style.display = 'none';
+                }, 400);
+                scheduleRandomMeow();
+            }, randomTime);
+        }
+        scheduleRandomMeow();
+
+        let isPetting = false;
+        let lastPurrTime = 0;
+
         catBtn.addEventListener('pointerdown', (e) => {
-            score += clickPower;
-            updateUI();
-            createPopText(e.clientX, e.clientY, `+${clickPower}`);
+            isPetting = true;
+            catBtn.setPointerCapture(e.pointerId);
+            triggerPetAction(e);
         });
 
-        // Анимация вылетающих чисел
+        catBtn.addEventListener('pointermove', (e) => {
+            if (!isPetting) return;
+            const now = Date.now();
+            if (now - lastPurrTime > 200) {
+                playRealisticPurr();
+                lastPurrTime = now;
+                
+                score += Math.max(1, Math.floor(clickPower / 2));
+                updateUI();
+                saveGame();
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 200;
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 300;
+                createPopText(clientX, clientY, `❤️`);
+            }
+        });
+
+        function stopPetting() {
+            if (!isPetting) return;
+            isPetting = false;
+            catBtn.classList.remove('petting');
+            eyesOpen.style.display = 'block';
+            eyesClosed.style.display = 'none';
+        }
+
+        catBtn.addEventListener('pointerup', stopPetting);
+        catBtn.addEventListener('pointercancel', stopPetting);
+
+        function triggerPetAction(e) {
+            score += clickPower;
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            playRealisticPurr();
+
+            catBtn.classList.add('petting');
+            eyesOpen.style.display = 'none';
+            eyesClosed.style.display = 'block';
+
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 200;
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 300;
+            createPopText(clientX, clientY, `+${clickPower} ❤️`);
+
+            updateUI();
+            saveGame();
+        }
+
+        function spawnFallingFish() {
+            const fish = document.createElement('div');
+            fish.className = 'falling-fish';
+            fish.textContent = '🐟';
+            
+            const randomX = Math.random() * (window.innerWidth - 60);
+            const duration = Math.random() * 3 + 4;
+            
+            fish.style.left = `${randomX}px`;
+            fish.style.animationDuration = `${duration}s`;
+
+            const collectFish = (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                
+                const bonus = Math.max(5, clickPower * 5);
+                score += bonus;
+
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+
+                playFishSound();
+                createPopText(event.clientX || (event.touches ? event.touches[0].clientX : 200), event.clientY || (event.touches ? event.touches[0].clientY : 300), `+${bonus} 🐟`);
+                
+                fish.remove();
+                updateUI();
+                saveGame();
+            };
+
+            fish.addEventListener('pointerdown', collectFish);
+            fish.addEventListener('click', collectFish);
+
+            fallingFishContainer.appendChild(fish);
+
+            setTimeout(() => {
+                if (fish.parentNode) {
+                    fish.remove();
+                }
+            }, duration * 1000);
+        }
+
+        setInterval(spawnFallingFish, 2500);
+
         function createPopText(x, y, text) {
             const el = document.createElement('div');
             el.className = 'click-pop';
             el.textContent = text;
             
-            // Немного рандома в позиции
-            const offsetX = (Math.random() - 0.5) * 30;
+            const offsetX = (Math.random() - 0.5) * 40;
             el.style.left = `${x + offsetX - 15}px`;
             el.style.top = `${y - 40}px`;
 
             document.body.appendChild(el);
-
-            setTimeout(() => {
-                el.remove();
-            }, 800);
+            setTimeout(() => el.remove(), 600);
         }
 
-        // Покупка клика
         document.getElementById('upgClick').addEventListener('click', () => {
             if (score >= clickCost) {
                 score -= clickCost;
                 clickPower += 1;
-                clickCost = Math.floor(clickCost * 1.8);
+                clickCost = Math.floor(clickCost * 1.7);
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 updateUI();
+                saveGame();
+            } else {
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             }
         });
 
-        // Покупка автокликера
         document.getElementById('upgAuto').addEventListener('click', () => {
             if (score >= autoCost) {
                 score -= autoCost;
                 autoPower += 1;
-                autoCost = Math.floor(autoCost * 2.2);
+                autoCost = Math.floor(autoCost * 2.1);
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 updateUI();
+                saveGame();
+            } else {
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             }
         });
 
-        // Авто-фарм
+        document.getElementById('upgSkinOrange').addEventListener('click', () => {
+            if (unlockedOrange) {
+                setSkin('orange');
+                return;
+            }
+            if (score >= 150) {
+                score -= 150;
+                unlockedOrange = true;
+                setSkin('orange');
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                updateUI();
+                saveGame();
+            } else {
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            }
+        });
+
+        document.getElementById('upgSkinBlack').addEventListener('click', () => {
+            if (unlockedBlack) {
+                setSkin('black');
+                return;
+            }
+            if (score >= 500) {
+                score -= 500;
+                unlockedBlack = true;
+                setSkin('black');
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                updateUI();
+                saveGame();
+            } else {
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            }
+        });
+
+        function setSkin(skinName) {
+            currentSkin = skinName;
+            if (skinName === 'orange') {
+                catBody.setAttribute('fill', '#f39c12');
+                catBodyBottom.setAttribute('fill', '#d35400');
+                earLeft.setAttribute('fill', '#d35400');
+                earRight.setAttribute('fill', '#d35400');
+                pawLeft.setAttribute('fill', '#f5b041');
+                pawRight.setAttribute('fill', '#f5b041');
+                catStripes.style.display = 'block';
+            } else if (skinName === 'black') {
+                catBody.setAttribute('fill', '#2c3e50');
+                catBodyBottom.setAttribute('fill', '#1a252f');
+                earLeft.setAttribute('fill', '#1a252f');
+                earRight.setAttribute('fill', '#1a252f');
+                pawLeft.setAttribute('fill', '#34495e');
+                pawRight.setAttribute('fill', '#34495e');
+                catStripes.style.display = 'none';
+            } else {
+                catBody.setAttribute('fill', '#dedede');
+                catBodyBottom.setAttribute('fill', '#b5b5b5');
+                earLeft.setAttribute('fill', '#333');
+                earRight.setAttribute('fill', '#333');
+                pawLeft.setAttribute('fill', '#fff');
+                pawRight.setAttribute('fill', '#fff');
+                catStripes.style.display = 'none';
+            }
+            updateUI();
+        }
+
         setInterval(() => {
             if (autoPower > 0) {
                 score += autoPower;
                 updateUI();
+                saveGame();
             }
         }, 1000);
 
-        // Обновление интерфейса
+        function saveGame() {
+            localStorage.setItem('kotekub_score', score);
+            localStorage.setItem('kotekub_clickPower', clickPower);
+            localStorage.setItem('kotekub_autoPower', autoPower);
+            localStorage.setItem('kotekub_clickCost', clickCost);
+            localStorage.setItem('kotekub_autoCost', autoCost);
+            localStorage.setItem('kotekub_skin_orange', unlockedOrange);
+            localStorage.setItem('kotekub_skin_black', unlockedBlack);
+            localStorage.setItem('kotekub_currentSkin', currentSkin);
+        }
+
         function updateUI() {
             scoreEl.textContent = score;
+            clickPowerText.textContent = clickPower;
+            autoPowerText.textContent = autoPower;
             
-            btnClickUpg.textContent = `${clickCost} 🐾`;
-            btnAutoUpg.textContent = `${autoCost} 🐾`;
+            btnClickUpg.textContent = `${clickCost} 📦`;
+            btnAutoUpg.textContent = `${autoCost} 📦`;
 
-            // Прогресс бар
-            let progress = (score % 100);
+            if (unlockedOrange) {
+                btnSkinOrange.textContent = currentSkin === 'orange' ? 'Выбрано' : 'Надеть';
+                btnSkinOrange.classList.add('bought');
+            } else {
+                btnSkinOrange.textContent = '150 📦';
+            }
+
+            if (unlockedBlack) {
+                btnSkinBlack.textContent = currentSkin === 'black' ? 'Выбрано' : 'Надеть';
+                btnSkinBlack.classList.add('bought');
+            } else {
+                btnSkinBlack.textContent = '500 📦';
+            }
+
+            let level = Math.floor(score / 200) + 1;
+            let progress = ((score % 200) / 200) * 100;
+            
+            levelInfo.textContent = `Уровень ${level}`;
             levelProgress.style.width = `${progress}%`;
         }
 
+        setSkin(currentSkin);
         updateUI();
     </script>
 </body>
