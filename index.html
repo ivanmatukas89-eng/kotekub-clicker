@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kotekub Craft - MC Edition</title>
+    <title>Kotekub Craft - MC Hardcore Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -18,7 +18,7 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(to bottom, #4a90e2 0%, #87ceeb 50%, #76a84c 50%, #4c8225 100%);
+            background: var(--sky-bg, linear-gradient(to bottom, #4a90e2 0%, #87ceeb 50%, #76a84c 50%, #4c8225 100%));
             font-family: 'Courier New', Courier, monospace;
             color: #ffffff;
             display: flex;
@@ -27,21 +27,50 @@
             justify-content: space-between;
             overflow: hidden;
             position: relative;
+            transition: background 1s ease;
         }
 
-        /* Пиксельное солнце в стиле Minecraft */
-        .pixel-sun {
+        .celestial-body {
             position: absolute;
             top: 30px;
             right: 40px;
             width: 50px;
             height: 50px;
+            z-index: 1;
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .pixel-sun {
             background: #ffeb3b;
             box-shadow: 0 0 20px #ff9800, inset -6px -6px 0px #f57c00;
+        }
+
+        .pixel-moon {
+            background: #f1f2f6;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), inset -6px -6px 0px #ced6e0;
+            border-radius: 4px;
+        }
+
+        .stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
             z-index: 1;
         }
 
-        /* Насыщенный и разнообразный пейзаж (горы, песок, камни, деревья) */
+        .star {
+            position: absolute;
+            background: #ffffff;
+            width: 4px;
+            height: 4px;
+            box-shadow: 0 0 6px #fff;
+        }
+
         .scenery {
             position: absolute;
             bottom: 45vh;
@@ -49,9 +78,10 @@
             height: 170px;
             pointer-events: none;
             z-index: 1;
+            filter: brightness(var(--scenery-brightness, 1));
+            transition: filter 1s ease;
         }
 
-        /* Песчаные дюны слева */
         .sand-dune {
             position: absolute;
             bottom: 0;
@@ -63,7 +93,6 @@
             border-radius: 50% 50% 0 0;
         }
 
-        /* Каменистые скалы */
         .rock {
             position: absolute;
             bottom: 0;
@@ -110,7 +139,6 @@
         .tree-2 { right: 30%; bottom: 15px; transform: scale(0.85); }
         .tree-3 { right: 10%; bottom: 5px; transform: scale(0.9); }
 
-        /* Разноцветная земля с цветами и тропинкой */
         .ground-layer {
             position: absolute;
             bottom: 43vh;
@@ -118,23 +146,26 @@
             height: 25px;
             background: repeating-linear-gradient(90deg, 
                 #27ae60, #27ae60 12px, 
-                #e67e22 12px, #e67e22 22px, /* Тропинка / песок */
+                #e67e22 12px, #e67e22 22px, 
                 #27ae60 22px, #27ae60 40px, 
-                #e74c3c 40px, #e74c3c 44px, /* Красные цветы */
+                #e74c3c 40px, #e74c3c 44px, 
                 #27ae60 44px, #27ae60 65px, 
-                #f1c40f 65px, #f1c40f 69px, /* Желтые цветы */
+                #f1c40f 65px, #f1c40f 69px, 
                 #27ae60 69px, #27ae60 90px
             );
             border-top: 4px solid #1e8449;
             z-index: 1;
+            filter: brightness(var(--scenery-brightness, 1));
+            transition: filter 1s ease;
         }
 
         .cloud {
             position: absolute;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 12px 0 0 rgba(255, 255, 255, 0.9), -12px 0 0 rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 12px 0 0 rgba(255, 255, 255, 0.8), -12px 0 0 rgba(255, 255, 255, 0.8);
             animation: moveCloud 25s linear infinite;
             z-index: 1;
+            transition: background 1s ease;
         }
         .cloud-1 { width: 70px; height: 22px; top: 12%; left: -90px; animation-duration: 30s; }
         .cloud-2 { width: 90px; height: 26px; top: 22%; left: -120px; animation-duration: 40s; animation-delay: -12s; }
@@ -144,7 +175,7 @@
             100% { transform: translateX(calc(100vw + 180px)); }
         }
 
-        #fallingFishContainer {
+        #gameContainerLayer {
             position: absolute;
             top: 0;
             left: 0;
@@ -163,7 +194,6 @@
             animation: fallFish linear forwards;
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4));
             transition: transform 0.1s;
-            z-index: 11;
         }
 
         .falling-fish:active {
@@ -175,6 +205,41 @@
             10% { opacity: 1; }
             90% { opacity: 1; }
             100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* SVG Зомби на арене */
+        .zombie-mob {
+            position: absolute;
+            bottom: 44vh;
+            width: 70px;
+            height: 95px;
+            cursor: pointer;
+            pointer-events: auto;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6));
+            animation: mobWalk 1.2s ease-in-out infinite alternate;
+            z-index: 12;
+        }
+
+        /* SVG Скелет на арене */
+        .skeleton-mob {
+            position: absolute;
+            bottom: 44vh;
+            width: 70px;
+            height: 95px;
+            cursor: pointer;
+            pointer-events: auto;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6));
+            animation: mobWalk 1.2s ease-in-out infinite alternate;
+            z-index: 12;
+        }
+
+        @keyframes mobWalk {
+            0% { transform: translateY(0) scale(1) rotate(-2deg); }
+            100% { transform: translateY(-6px) scale(1.03) rotate(2deg); }
+        }
+
+        .zombie-mob:active, .skeleton-mob:active {
+            transform: scale(0.8) rotate(15deg);
         }
 
         .header {
@@ -192,7 +257,15 @@
             letter-spacing: 2px;
             color: #ffeb3b;
             text-shadow: 3px 3px #000000;
+            margin-bottom: 2px;
+        }
+
+        .time-indicator {
+            font-size: 0.75rem;
+            color: #dfe4ea;
+            text-shadow: 1px 1px #000;
             margin-bottom: 5px;
+            letter-spacing: 1px;
         }
 
         .score-container {
@@ -259,6 +332,15 @@
 
         .cat-cube.petting {
             transform: scale(0.92) translateY(5px);
+        }
+
+        .cat-cube.fighting {
+            animation: catAttack 0.3s ease infinite alternate;
+        }
+
+        @keyframes catAttack {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.05) rotate(-6deg) translateX(-10px); }
         }
 
         @keyframes float {
@@ -349,11 +431,12 @@
 </head>
 <body>
 
-    <div class="pixel-sun"></div>
+    <div class="celestial-body pixel-sun" id="sunMoon"></div>
+    <div class="stars-container" id="starsContainer"></div>
+
     <div class="cloud cloud-1"></div>
     <div class="cloud cloud-2"></div>
 
-    <!-- Детализированный пейзаж: солнце, горы, скалы, песчаные дюны и деревья -->
     <div class="scenery">
         <div class="sand-dune"></div>
         <div class="rock"></div>
@@ -374,10 +457,11 @@
     </div>
     <div class="ground-layer"></div>
 
-    <div id="fallingFishContainer"></div>
+    <div id="gameContainerLayer"></div>
 
     <div class="header">
         <div class="title">Kotekub Craft</div>
+        <div class="time-indicator" id="timeIndicator">☀️ День</div>
         <div class="score-container">
             <span id="score">0</span>
             <span style="font-size: 1.8rem;">📦</span>
@@ -388,7 +472,7 @@
         </div>
     </div>
 
-    <!-- Кубический котик со скин-системой -->
+    <!-- Кубический котик со скин-системой и алмазным мечом -->
     <div class="game-area" id="gameArea">
         <svg class="cat-cube" id="catBtn" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -438,6 +522,13 @@
             <!-- Лапки -->
             <rect id="pawLeft" x="45" y="165" width="30" height="18" fill="#fff" stroke="#111" stroke-width="3"/>
             <rect id="pawRight" x="125" y="165" width="30" height="18" fill="#fff" stroke="#111" stroke-width="3"/>
+
+            <!-- Алмазный меч (появляется ночью в лапке котика) -->
+            <g id="diamondSword" style="display: none; transform: translate(140px, 120px) rotate(-45deg);">
+                <rect x="0" y="0" width="8" height="35" fill="#00bcd4" stroke="#006064" stroke-width="2"/>
+                <rect x="-4" y="32" width="16" height="6" fill="#795548" stroke="#3e2723" stroke-width="2"/>
+                <rect x="2" y="38" width="4" height="10" fill="#5d4037"/>
+            </g>
         </svg>
     </div>
 
@@ -495,7 +586,7 @@
         const eyesClosed = document.getElementById('eyesClosed');
         const levelProgress = document.getElementById('levelProgress');
         const levelInfo = document.getElementById('levelInfo');
-        const fallingFishContainer = document.getElementById('fallingFishContainer');
+        const gameContainerLayer = document.getElementById('gameContainerLayer');
 
         const btnClickUpg = document.getElementById('btnClickUpg');
         const btnAutoUpg = document.getElementById('btnAutoUpg');
@@ -509,9 +600,49 @@
         const earRight = document.getElementById('earRight');
         const pawLeft = document.getElementById('pawLeft');
         const pawRight = document.getElementById('pawRight');
+        const diamondSword = document.getElementById('diamondSword');
 
         const btnSkinOrange = document.getElementById('btnSkinOrange');
         const btnSkinBlack = document.getElementById('btnSkinBlack');
+
+        const sunMoon = document.getElementById('sunMoon');
+        const starsContainer = document.getElementById('starsContainer');
+        const timeIndicator = document.getElementById('timeIndicator');
+
+        for (let i = 0; i < 20; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.opacity = Math.random() * 0.7 + 0.3;
+            starsContainer.appendChild(star);
+        }
+
+        let isNightTime = false;
+        let gameTimeSeconds = 0;
+        
+        setInterval(() => {
+            gameTimeSeconds = (gameTimeSeconds + 1) % 60;
+            isNightTime = gameTimeSeconds >= 30;
+
+            if (isNightTime) {
+                document.documentElement.style.setProperty('--sky-bg', 'linear-gradient(to bottom, #0f2027 0%, #203a43 50%, #2c5364 50%, #16222a 100%)');
+                document.documentElement.style.setProperty('--scenery-brightness', '0.5');
+                sunMoon.className = 'celestial-body pixel-moon';
+                starsContainer.style.opacity = '1';
+                timeIndicator.textContent = '🌙 Ночь (Зомби атакуют!)';
+                catBtn.classList.add('fighting');
+                diamondSword.style.display = 'block';
+            } else {
+                document.documentElement.style.setProperty('--sky-bg', 'linear-gradient(to bottom, #4a90e2 0%, #87ceeb 50%, #76a84c 50%, #4c8225 100%)');
+                document.documentElement.style.setProperty('--scenery-brightness', '1');
+                sunMoon.className = 'celestial-body pixel-sun';
+                starsContainer.style.opacity = '0';
+                timeIndicator.textContent = '☀️ День';
+                catBtn.classList.remove('fighting');
+                diamondSword.style.display = 'none';
+            }
+        }, 1000);
 
         let audioCtx = null;
         function initAudio() {
@@ -570,38 +701,40 @@
             } catch (e) {}
         }
 
-        function playFishSound() {
+        function playHitSound() {
             try {
                 initAudio();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
 
-                osc.type = 'triangle';
+                osc.type = 'square';
                 const now = audioCtx.currentTime;
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
 
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
 
                 osc.start(now);
-                osc.stop(now + 0.15);
+                osc.stop(now + 0.1);
             } catch (e) {}
         }
 
         function scheduleRandomMeow() {
             const randomTime = Math.random() * 10000 + 12000;
             setTimeout(() => {
-                playMeowSound();
-                eyesOpen.style.display = 'none';
-                eyesClosed.style.display = 'block';
-                setTimeout(() => {
-                    eyesOpen.style.display = 'block';
-                    eyesClosed.style.display = 'none';
-                }, 400);
+                if (!isNightTime) {
+                    playMeowSound();
+                    eyesOpen.style.display = 'none';
+                    eyesClosed.style.display = 'block';
+                    setTimeout(() => {
+                        eyesOpen.style.display = 'block';
+                        eyesClosed.style.display = 'none';
+                    }, 400);
+                }
                 scheduleRandomMeow();
             }, randomTime);
         }
@@ -664,7 +797,7 @@
             updateUI();
             saveGame();
         }
-
+        // Спавн падающих рыбок днем и ночью
         function spawnFallingFish() {
             const fish = document.createElement('div');
             fish.className = 'falling-fish';
@@ -687,7 +820,7 @@
                     tg.HapticFeedback.notificationOccurred('success');
                 }
 
-                playFishSound();
+                playHitSound();
                 createPopText(event.clientX || (event.touches ? event.touches[0].clientX : 200), event.clientY || (event.touches ? event.touches[0].clientY : 300), `+${bonus} 🐟`);
                 
                 fish.remove();
@@ -698,7 +831,7 @@
             fish.addEventListener('pointerdown', collectFish);
             fish.addEventListener('click', collectFish);
 
-            fallingFishContainer.appendChild(fish);
+            gameContainerLayer.appendChild(fish);
 
             setTimeout(() => {
                 if (fish.parentNode) {
@@ -708,6 +841,122 @@
         }
 
         setInterval(spawnFallingFish, 2500);
+
+        // Спавн мобов (Зомби или Скелет из Майнкрафта по референсам)
+        function spawnMob() {
+            if (!isNightTime) return;
+
+            const isSkeleton = Math.random() > 0.5;
+            const mobEl = document.createElement('div');
+            
+            if (isSkeleton) {
+                mobEl.className = 'skeleton-mob';
+                mobEl.innerHTML = `
+                    <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                        <!-- Череп скелета -->
+                        <rect x="28" y="2" width="44" height="40" fill="#dcdde1" stroke="#2f3640" stroke-width="3"/>
+                        <rect x="36" y="16" width="10" height="10" fill="#2f3640"/>
+                        <rect x="54" y="16" width="10" height="10" fill="#2f3640"/>
+                        <rect x="40" y="30" width="20" height="4" fill="#2f3640"/>
+
+                        <!-- Позвоночник и ребра -->
+                        <rect x="46" y="42" width="8" height="35" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+                        <rect x="36" y="46" width="28" height="6" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+                        <rect x="36" y="56" width="28" height="6" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+
+                        <!-- Руки с луком -->
+                        <rect x="15" y="45" width="25" height="10" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+                        <rect x="60" y="45" width="25" height="10" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+                        <!-- Лук в руках -->
+                        <path d="M 75 35 Q 90 50 75 75" stroke="#784212" stroke-width="5" fill="none"/>
+                        <line x1="77" y1="37" x2="77" y2="73" stroke="#fff" stroke-width="2"/>
+
+                        <!-- Ноги -->
+                        <rect x="36" y="78" width="10" height="38" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+                        <rect x="54" y="78" width="10" height="38" fill="#bdc3c7" stroke="#2f3640" stroke-width="2"/>
+                    </svg>
+                `;
+            } else {
+                mobEl.className = 'zombie-mob';
+                mobEl.innerHTML = `
+                    <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                        <rect x="25" y="0" width="50" height="45" fill="#4a7c2d" stroke="#1b360f" stroke-width="3"/>
+                        <rect x="35" y="16" width="10" height="6" fill="#e74c3c"/>
+                        <rect x="55" y="16" width="10" height="6" fill="#e74c3c"/>
+                        <rect x="40" y="28" width="20" height="8" fill="#1b360f"/>
+                        <rect x="42" y="30" width="4" height="4" fill="#fff"/>
+                        <rect x="50" y="30" width="4" height="4" fill="#fff"/>
+
+                        <rect x="32" y="45" width="36" height="42" fill="#00acc1" stroke="#006064" stroke-width="3"/>
+                        <rect x="10" y="48" width="30" height="18" fill="#4a7c2d" stroke="#1b360f" stroke-width="3"/>
+                        <rect x="60" y="48" width="30" height="18" fill="#4a7c2d" stroke="#1b360f" stroke-width="3"/>
+
+                        <rect x="34" y="87" width="15" height="30" fill="#5e35b1" stroke="#311b92" stroke-width="2"/>
+                        <rect x="51" y="87" width="15" height="30" fill="#5e35b1" stroke="#311b92" stroke-width="2"/>
+                    </svg>
+                `;
+            }
+
+            const isLeft = Math.random() > 0.5;
+            let posX = isLeft ? -70 : window.innerWidth + 20;
+            const targetX = isLeft ? window.innerWidth / 2 - 80 : window.innerWidth / 2 + 30;
+            
+            mobEl.style.left = `${posX}px`;
+
+            const killMob = (event) => {
+                if(event) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+
+                const reward = (isSkeleton ? 40 : 30) * clickPower;
+                score += reward;
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('heavy');
+                }
+
+                playHitSound();
+                const rect = mobEl.getBoundingClientRect();
+                createPopText(rect.left + 35, rect.top, `⚔️ +${reward} XP`);
+
+                mobEl.remove();
+                updateUI();
+                saveGame();
+            };
+
+            mobEl.addEventListener('pointerdown', killMob);
+            mobEl.addEventListener('click', killMob);
+
+            gameContainerLayer.appendChild(mobEl);
+
+            let currentX = posX;
+            const walkInterval = setInterval(() => {
+                if (!mobEl.parentNode || !isNightTime) {
+                    clearInterval(walkInterval);
+                    if (mobEl.parentNode) mobEl.remove();
+                    return;
+                }
+
+                if (Math.abs(currentX - targetX) > 10) {
+                    currentX += (targetX > currentX) ? 2 : -2;
+                    mobEl.style.left = `${currentX}px`;
+                } else {
+                    // Котик сам атакует мечом дошедшего до него моба!
+                    clearInterval(walkInterval);
+                    killMob(null);
+                }
+            }, 30);
+
+            setTimeout(() => {
+                clearInterval(walkInterval);
+                if (mobEl.parentNode) {
+                    mobEl.remove();
+                }
+            }, 8000);
+        }
+
+        // Спавним мобов реже (каждые 3.5 секунды), они стали меньше и котик сам их рубит
+        setInterval(spawnMob, 3500);
 
         function createPopText(x, y, text) {
             const el = document.createElement('div');
