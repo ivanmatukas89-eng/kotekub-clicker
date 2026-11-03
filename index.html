@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Клик-ферма КотэКуба</title>
+    <!-- Подключаем скрипт Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS для быстрого и красивого дизайна -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes bounce-short {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.92); }
+        }
+        .click-animation {
+            animation: bounce-short 0.1s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between items-center p-4 select-none">
+
+    <!-- Шапка профиля -->
+    <div class="w-full max-w-md flex justify-between items-center bg-slate-800/60 p-4 rounded-2xl border border-slate-700 backdrop-blur-md">
+        <div>
+            <h1 id="username" class="font-bold text-lg text-amber-400">КотэКуб Фармер</h1>
+            <p class="text-xs text-slate-400">Твой уровень: <span id="level" class="text-white font-semibold">Новичок</span></p>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400 font-bold text-sm">
+            🐟 <span id="fishCount">0</span>
+        </div>
+    </div>
+
+    <!-- Основная игровая зона (Кликалка) -->
+    <div class="flex flex-col items-center justify-center my-auto">
+        <div class="text-center mb-6">
+            кликни на кота!
+        </div>
+        
+        <!-- Сам КотэКуб (кнопка) -->
+        <button id="clickBtn" class="relative group focus:outline-none transition-transform">
+            <div class="absolute -inset-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl blur-xl opacity-40 group-hover:opacity-75 transition duration-300"></div>
+            <div id="cubeContainer" class="relative w-48 h-48 bg-gradient-to-br from-amber-400 to-orange-600 rounded-3xl shadow-2xl flex flex-col items-center justify-center border-4 border-amber-300/50 cursor-pointer">
+                <!-- Мордочка КотэКуба (имитация пиксель-арта/куба) -->
+                <div class="text-6xl mb-2">🐱📦</div>
+                <span class="text-slate-900 font-black tracking-wider text-sm bg-amber-200/80 px-3 py-1 rounded-lg">КОТЭКУБ</span>
+            </div>
+        </button>
+        
+        <p class="text-xs text-slate-500 mt-6">+<span id="clickPower">1</span> рыба за клик</p>
+    </div>
+
+    <!-- Магазин прокачки -->
+    <div class="w-full max-w-md bg-slate-800/60 p-4 rounded-2xl border border-slate-700 backdrop-blur-md mb-2">
+        <h2 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wider">🛒 Улучшения</h2>
+        <div class="space-y-2">
+            <!-- Апгрейд клика -->
+            <button onclick="buyUpgrade()" class="w-full bg-slate-700/60 hover:bg-slate-700 border border-slate-600 p-3 rounded-xl flex justify-between items-center transition">
+                <div class="text-left">
+                    <div class="font-bold text-sm text-amber-300">Пышные ушки (+1 к клику)</div>
+                    <div class="text-xs text-slate-400">Цена: <span id="upgradeCost">15</span> рыбы</div>
+                </div>
+                <div class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs">Купить</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Логика игры (JS) -->
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+
+        // Персонализация, если открыто из телеграма
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+        }
+
+        // Игровые переменные
+        let fish = 0;
+        let clickPower = 1;
+        let upgradeCost = 15;
+
+        const clickBtn = document.getElementById('clickBtn');
+        const cubeContainer = document.getElementById('cubeContainer');
+        const fishCountSpan = document.getElementById('fishCount');
+        const clickPowerSpan = document.getElementById('clickPower');
+        const upgradeCostSpan = document.getElementById('upgradeCost');
+
+        // Обработка клика по КотэКубу
+        clickBtn.addEventListener('click', () => {
+            fish += clickPower;
+            updateUI();
+
+            // Анимация нажатия
+            cubeContainer.classList.
